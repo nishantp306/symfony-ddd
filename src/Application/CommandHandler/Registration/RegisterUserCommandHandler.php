@@ -37,6 +37,8 @@ class RegisterUserCommandHandler
             throw new Exception('Username already exists.');
         }
 
+        $this->validatePassword($command->getPassword());
+
         $user = new User();
         $user->setEmail($command->getEmail());
         $user->setUsername($command->getUsername());
@@ -45,5 +47,20 @@ class RegisterUserCommandHandler
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+    }
+
+    /**
+     * Validates the password.
+     *
+     * @param string $password
+     * @throws Exception
+     */
+    private function validatePassword(string $password): void
+    {
+        $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/';
+
+        if (!preg_match($pattern, $password)) {
+            throw new Exception('Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.');
+        }
     }
 }

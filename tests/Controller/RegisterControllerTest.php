@@ -29,7 +29,7 @@ class RegisterControllerTest extends WebTestCase
         $this->client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'email' => 'test@example.com',
             'username' => 'testuser',
-            'password' => 'password123'
+            'password' => 'Password123!'
         ]));
 
         $this->assertEquals(Response::HTTP_CREATED, $this->client->getResponse()->getStatusCode());
@@ -45,7 +45,7 @@ class RegisterControllerTest extends WebTestCase
         $this->client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'email' => 'test@example.com',
             'username' => 'testuser',
-            'password' => 'password123'
+            'password' => 'Password123!'
         ]));
 
         $this->assertEquals(JsonResponse::HTTP_BAD_REQUEST, $this->client->getResponse()->getStatusCode());
@@ -61,10 +61,22 @@ class RegisterControllerTest extends WebTestCase
         $this->client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'email' => 'test@example.com',
             'username' => 'testuser',
-            'password' => 'password123'
+            'password' => 'Password123!'
         ]));
 
         $this->assertEquals(JsonResponse::HTTP_BAD_REQUEST, $this->client->getResponse()->getStatusCode());
         $this->assertJsonStringEqualsJsonString(json_encode(['error' => 'Username already exists.']), $this->client->getResponse()->getContent());
+    }
+
+    public function testRegisterWeakPassword()
+    {
+        $this->client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+            'email' => 'test@example.com',
+            'username' => 'testuser',
+            'password' => 'weakpass'
+        ]));
+
+        $this->assertEquals(JsonResponse::HTTP_BAD_REQUEST, $this->client->getResponse()->getStatusCode());
+        $this->assertJsonStringEqualsJsonString(json_encode(['errors' => ['Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.']]), $this->client->getResponse()->getContent());
     }
 }

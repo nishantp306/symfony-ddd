@@ -24,7 +24,7 @@ class ProductControllerTest extends WebTestCase
     {
         $this->client->request('POST', '/login', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'username' => 'testuser',
-            'password' => 'password123'
+            'password' => 'Password123!'
         ]));
 
         $response = $this->client->getResponse();
