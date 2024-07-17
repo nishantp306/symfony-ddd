@@ -27,13 +27,26 @@ class RegisterControllerTest extends WebTestCase
         $this->container->set(RegisterUserCommandHandler::class, $mockHandler);
 
         $this->client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
-            'email' => 'test@example.com',
-            'username' => 'testuser',
-            'password' => 'Password123!'
+            'email' => 'test2@example.com',
+            'username' => 'testuser2',
+            'password' => 'Test@123'
         ]));
 
         $this->assertEquals(Response::HTTP_CREATED, $this->client->getResponse()->getStatusCode());
         $this->assertJsonStringEqualsJsonString(json_encode(['message' => 'User registered successfully']), $this->client->getResponse()->getContent());
+    }
+
+    public function testRegisterWeakPassword()
+    {
+
+        $this->client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+            'email' => 'test2@example.com',
+            'username' => 'testuser2',
+            'password' => 'weakPass'
+        ]));
+
+        $this->assertEquals(JsonResponse::HTTP_BAD_REQUEST, $this->client->getResponse()->getStatusCode());
+        $this->assertJsonStringEqualsJsonString(json_encode(['error' => 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.']), $this->client->getResponse()->getContent());
     }
 
     public function testRegisterEmailExists()
@@ -43,9 +56,9 @@ class RegisterControllerTest extends WebTestCase
         $this->container->set(RegisterUserCommandHandler::class, $mockHandler);
 
         $this->client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
-            'email' => 'test@example.com',
-            'username' => 'testuser',
-            'password' => 'Password123!'
+            'email' => 'test2@example.com',
+            'username' => 'testuser2',
+            'password' => 'Test@123'
         ]));
 
         $this->assertEquals(JsonResponse::HTTP_BAD_REQUEST, $this->client->getResponse()->getStatusCode());
@@ -61,22 +74,10 @@ class RegisterControllerTest extends WebTestCase
         $this->client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'email' => 'test@example.com',
             'username' => 'testuser',
-            'password' => 'Password123!'
+            'password' => 'Test@123'
         ]));
 
         $this->assertEquals(JsonResponse::HTTP_BAD_REQUEST, $this->client->getResponse()->getStatusCode());
         $this->assertJsonStringEqualsJsonString(json_encode(['error' => 'Username already exists.']), $this->client->getResponse()->getContent());
-    }
-
-    public function testRegisterWeakPassword()
-    {
-        $this->client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
-            'email' => 'test@example.com',
-            'username' => 'testuser',
-            'password' => 'weakpass'
-        ]));
-
-        $this->assertEquals(JsonResponse::HTTP_BAD_REQUEST, $this->client->getResponse()->getStatusCode());
-        $this->assertJsonStringEqualsJsonString(json_encode(['errors' => ['Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.']]), $this->client->getResponse()->getContent());
     }
 }

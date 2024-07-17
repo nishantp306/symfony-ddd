@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Tests\Controller;
+use App\Domain\Model\Entity\User;
 use PHPUnit\Framework\Attributes\Depends;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -16,21 +17,43 @@ class ProductControllerTest extends WebTestCase
     {
         parent::setUp();
         $this->client = static::createClient();
+        $this->registerUserIfNotExists();
         $this->accessToken = $this->getTokenFromLogin();
         $this->testCreateProduct();
+    }
+
+    private function registerUserIfNotExists()
+    {
+        $entityManager = $this->client->getContainer()->get('doctrine')->getManager();
+        $user = $entityManager->getRepository(User::class)->findOneBy(['email' => 'testuser1@example.com']);
+
+        if ($user) {
+            $entityManager->remove($user);
+            $entityManager->flush();
+        }
+
+        $this->client->request('POST', '/register', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+            'email' => 'testuser1@example.com',
+            'username' => 'testuser1',
+            'password' => 'Test@123',
+        ]));
+
+        $response = $this->client->getResponse();
+        if ($response->getStatusCode() !== JsonResponse::HTTP_CREATED) {
+            throw new \Exception('Failed to register user for testing: ' . $response->getContent());
+        }
     }
 
     private function getTokenFromLogin(): string
     {
         $this->client->request('POST', '/login', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
-            'username' => 'testuser',
-            'password' => 'Password123!'
+            'username' => 'testuser1',
+            'password' => 'Test@123'
         ]));
 
         $response = $this->client->getResponse();
         $responseData = json_decode($response->getContent(), true);
 
-        // Check if login was successful and token exists
         if ($response->getStatusCode() === JsonResponse::HTTP_OK && isset($responseData['token'])) {
             return $responseData['token'];
         } else {
